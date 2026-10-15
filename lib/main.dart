@@ -892,7 +892,50 @@ class SettingsPage extends StatelessWidget {
           ]),
           const SizedBox(height: 16),
           const _SettingCaption('Accent color'),
-          Row(children: List.generate(FlowState.accentOptions.length, (index) => Expanded(child: Center(child: InkWell(onTap: () => state.setAccent(index), borderRadius: BorderRadius.circular(30), child: AnimatedContainer(duration: Duration(milliseconds: state.animations ? 180 : 0), width: state.accentIndex == index ? 34 : 27, height: state.accentIndex == index ? 34 : 27, decoration: BoxDecoration(color: FlowState.accentOptions[index], shape: BoxShape.circle, border: Border.all(color: state.accentIndex == index ? Theme.of(context).colorScheme.onSurface : Colors.transparent, width: 2), boxShadow: state.accentIndex == index ? [BoxShadow(color: FlowState.accentOptions[index].withValues(alpha: .38), blurRadius: 14)] : []), child: state.accentIndex == index ? const Icon(Icons.check_rounded, size: 17, color: Colors.white) : null))))),
+          Row(
+            children: List.generate(
+              FlowState.accentOptions.length,
+              (index) => Expanded(
+                child: Center(
+                  child: InkWell(
+                    onTap: () => state.setAccent(index),
+                    borderRadius: BorderRadius.circular(30),
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: state.animations ? 180 : 0),
+                      width: state.accentIndex == index ? 34 : 27,
+                      height: state.accentIndex == index ? 34 : 27,
+                      decoration: BoxDecoration(
+                        color: FlowState.accentOptions[index],
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: state.accentIndex == index
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                        boxShadow: state.accentIndex == index
+                            ? [
+                                BoxShadow(
+                                  color: FlowState.accentOptions[index]
+                                      .withValues(alpha: .38),
+                                  blurRadius: 14,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: state.accentIndex == index
+                          ? const Icon(
+                              Icons.check_rounded,
+                              size: 17,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
           _SwitchSetting(title: 'Blur glass panels', subtitle: 'Translucent cards and soft background blur', value: state.glass, onChanged: state.setGlass),
           _SwitchSetting(title: 'UI animations', subtitle: 'Animated transitions and selection feedback', value: state.animations, onChanged: state.setAnimations),
