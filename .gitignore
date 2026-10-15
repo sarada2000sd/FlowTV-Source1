@@ -1,0 +1,9 @@
+.dart_tool/
+.packages
+.pub-cache/
+build/
+coverage/
+android/
+windows/
+.DS_Store
+*.log

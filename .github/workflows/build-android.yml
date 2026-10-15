@@ -1,0 +1,56 @@
+name: Build FlowTV Android APK
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android and Windows platform scaffolding
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCAFFOLD="$RUNNER_TEMP/flowtv_platform_scaffold"
+          rm -rf "$SCAFFOLD"
+          flutter create --platforms=android,windows --org com.flowtv --project-name flowtv "$SCAFFOLD"
+          cp -R "$SCAFFOLD/android" ./android
+          cp -R "$SCAFFOLD/windows" ./windows
+          cp "$SCAFFOLD/.metadata" ./.metadata
+
+      - name: Apply FlowTV Android PiP and app branding
+        run: python tool/patch_platforms.py android windows
+
+      - name: Resolve packages and generate app icons
+        run: |
+          flutter pub get
+          dart run flutter_launcher_icons
+          dart format lib test
+          flutter test
+
+      - name: Build release APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload Android APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlowTV-Android-APKs
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 30
