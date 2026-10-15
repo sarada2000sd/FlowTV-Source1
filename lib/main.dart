@@ -22,14 +22,15 @@ Future<void> main() async {
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
     await windowManager.ensureInitialized();
     const options = WindowOptions(
-      size: Size(1280, 820),
-      minimumSize: Size(900, 620),
+      // Keep the first launch inside a typical 1366×768 laptop screen.
+      size: Size(1050, 680),
+      minimumSize: Size(760, 520),
       center: true,
       title: 'FlowTV',
       backgroundColor: Colors.black,
       titleBarStyle: TitleBarStyle.normal,
     );
-    windowManager.waitUntilReadyToShow(options, () async {
+    await windowManager.waitUntilReadyToShow(options, () async {
       await windowManager.show();
       await windowManager.focus();
     });
@@ -440,6 +441,33 @@ class FlowTVApp extends StatelessWidget {
               scaffoldBackgroundColor: const Color(0xFFF5F6FC),
               appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, surfaceTintColor: Colors.transparent),
               snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: scheme.inverseSurface),
+              filledButtonTheme: FilledButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.pressed)) return base.withValues(alpha: .22);
+                    if (states.contains(WidgetState.hovered)) return base.withValues(alpha: .12);
+                    return null;
+                  }),
+                ),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                    states.contains(WidgetState.hovered) ? base.withValues(alpha: .12) : null),
+                ),
+              ),
+              iconButtonTheme: IconButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                    states.contains(WidgetState.hovered) ? base.withValues(alpha: .16) : null),
+                ),
+              ),
               navigationBarTheme: NavigationBarThemeData(
                 backgroundColor: const Color(0xFFF9FAFF),
                 indicatorColor: base.withValues(alpha: .17),
@@ -454,6 +482,33 @@ class FlowTVApp extends StatelessWidget {
               scaffoldBackgroundColor: const Color(0xFF070B18),
               appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, surfaceTintColor: Colors.transparent),
               snackBarTheme: SnackBarThemeData(behavior: SnackBarBehavior.floating, backgroundColor: scheme.surfaceContainerHighest),
+              filledButtonTheme: FilledButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.pressed)) return base.withValues(alpha: .22);
+                    if (states.contains(WidgetState.hovered)) return base.withValues(alpha: .12);
+                    return null;
+                  }),
+                ),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                    states.contains(WidgetState.hovered) ? base.withValues(alpha: .12) : null),
+                ),
+              ),
+              iconButtonTheme: IconButtonThemeData(
+                style: ButtonStyle(
+                  animationDuration: Duration(milliseconds: state.animations ? 180 : 0),
+                  mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                    states.contains(WidgetState.hovered) ? base.withValues(alpha: .16) : null),
+                ),
+              ),
               navigationBarTheme: NavigationBarThemeData(
                 backgroundColor: const Color(0xEE080D1D),
                 indicatorColor: base.withValues(alpha: .20),
@@ -690,6 +745,7 @@ class HomePage extends StatelessWidget {
             ]),
           ),
         ),
+        const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18),
           child: Row(children: [
@@ -763,11 +819,12 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(right: 11),
-        child: SizedBox(
-          width: 124,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+        child: _HoverScale(
+          child: SizedBox(
+            width: 124,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: onTap,
               child: Ink(
@@ -776,6 +833,32 @@ class _CategoryCard extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+      );
+}
+
+class _HoverScale extends StatefulWidget {
+  const _HoverScale({required this.child});
+  final Widget child;
+
+  @override
+  State<_HoverScale> createState() => _HoverScaleState();
+}
+
+class _HoverScaleState extends State<_HoverScale> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedScale(
+          scale: _hovered ? 1.035 : 1,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          child: widget.child,
         ),
       );
 }
@@ -964,7 +1047,7 @@ class SettingsPage extends StatelessWidget {
           _PlainSetting(icon: Icons.folder_open_rounded, title: 'Import an M3U file', subtitle: 'Choose a file from this device', onTap: () async { try { final n = await state.importPlaylistFile(); if (context.mounted && n > 0) _snack(context, 'Imported $n channels.'); } catch (e) { if (context.mounted) _snack(context, 'Import failed: $e'); } }),
           _PlainSetting(icon: Icons.delete_sweep_outlined, title: 'Clear channel library', subtitle: 'Removes imported channels, favorites and history from this device', onTap: () async { final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Clear library?'), content: const Text('This removes all imported channel links, favorites and recent history from this device. It does not cancel any external subscription.'), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear library'))])); if (ok == true) { await state.clearLibrary(); if (context.mounted) _snack(context, 'Channel library cleared.'); } }),
           const Divider(height: 20),
-          Row(children: [const FlowLogo(size: 42), const SizedBox(width: 12), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('FlowTV', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)), Text('Version 1.0.0 • Android & Windows', style: TextStyle(fontSize: 12))])), Icon(Icons.verified_user_outlined, color: Theme.of(context).colorScheme.primary)]),
+          Row(children: [const FlowLogo(size: 42), const SizedBox(width: 12), const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('FlowTV', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)), Text('Version 1.0.1 • Android & Windows', style: TextStyle(fontSize: 12))])), Icon(Icons.verified_user_outlined, color: Theme.of(context).colorScheme.primary)]),
           const SizedBox(height: 8),
           const _NoticeLine(text: 'FlowTV is a player, not a broadcaster. Add streams you are authorized to access. Playlist links may be offline or region-restricted.'),
         ])),
@@ -1185,8 +1268,77 @@ Future<void> showPlaylistDialog(BuildContext context, FlowState state) async {
   field.dispose();
 }
 
-void _snack(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, maxLines: 3)));
+void _snack(BuildContext context, String message) => _showFlowSnack(context, message);
+
+void _showFlowSnack(BuildContext context, String message) {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+
+  final lower = message.toLowerCase();
+  final isError = RegExp(r'could not|failed|failure|error|invalid|exception|unable|not imported|not load').hasMatch(lower);
+  final isWarning = !isError && RegExp(r'no data|offline|not available|empty|buffer|timeout').hasMatch(lower);
+  final isSuccess = !isError && !isWarning && RegExp(r'imported|added|parsed|cleared|saved|restored|connected|loaded|complete').hasMatch(lower);
+  final accent = isError
+      ? const Color(0xFFFF5577)
+      : isWarning
+          ? const Color(0xFFFFC166)
+          : isSuccess
+              ? const Color(0xFF43E0B2)
+              : Theme.of(context).colorScheme.primary;
+  final icon = isError
+      ? Icons.error_outline_rounded
+      : isWarning
+          ? Icons.warning_amber_rounded
+          : isSuccess
+              ? Icons.check_circle_outline_rounded
+              : Icons.info_outline_rounded;
+
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      padding: EdgeInsets.zero,
+      margin: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+      duration: Duration(seconds: isError || isWarning ? 5 : 3),
+      content: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [Color(0xFF111A32), Color(0xFF17142C)],
+          ),
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: accent.withValues(alpha: .62), width: 1),
+          boxShadow: [BoxShadow(color: accent.withValues(alpha: .13), blurRadius: 22, offset: const Offset(0, 7))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: .14),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: accent, size: 21),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Text(
+                message,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFFF4F7FF), fontSize: 13, height: 1.3, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class PlayerPage extends StatefulWidget {
@@ -1201,15 +1353,21 @@ class _PlayerPageState extends State<PlayerPage> {
   late final Player player;
   late final VideoController videoController;
   StreamSubscription<bool>? _bufferingSubscription;
+  StreamSubscription<bool>? _playingSubscription;
   StreamSubscription<String>? _errorSubscription;
   Timer? _hideTimer;
   Timer? _bufferTimer;
   Timer? _stableTimer;
   bool _controlsVisible = true;
+  bool _connecting = true;
   bool _rotationLocked = false;
   bool _autoLowered = false;
   bool _showStats = false;
   bool _pip = false;
+  bool _desktopMiniPlayer = false;
+  Size? _previousWindowSize;
+  Offset? _previousWindowPosition;
+  bool _previouslyMaximized = false;
   String _error = '';
   String _quality = '';
   int _retries = 0;
@@ -1234,9 +1392,17 @@ class _PlayerPageState extends State<PlayerPage> {
     videoController = VideoController(player);
     _startPlayback();
     _bufferingSubscription = player.stream.buffering.listen(_onBuffering);
+    _playingSubscription = player.stream.playing.listen((playing) {
+      if (playing && mounted && _connecting) {
+        setState(() => _connecting = false);
+      }
+    });
     _errorSubscription = player.stream.error.listen((error) {
       if (!mounted || error.trim().isEmpty) return;
-      setState(() => _error = error);
+      setState(() {
+        _error = error;
+        _connecting = false;
+      });
     });
     _elapsedTicker = Timer.periodic(const Duration(seconds: 5), (_) {
       if (mounted && player.state.playing) setState(() => _elapsed = DateTime.now().difference(_startedAt));
@@ -1268,6 +1434,12 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _startPlayback() async {
+    if (mounted && (!_connecting || _error.isNotEmpty)) {
+      setState(() {
+        _connecting = true;
+        _error = '';
+      });
+    }
     try {
       final s = widget.state;
       if (s.proxyEnabled) {
@@ -1283,9 +1455,19 @@ class _PlayerPageState extends State<PlayerPage> {
       await _setMpvProperty('demuxer-max-bytes', s.bufferMode == 'stable' ? '67108864' : '33554432');
       await _setMpvProperty('hls-bitrate', _hlsPreference);
       await player.open(Media(widget.channel.url));
-      if (mounted) setState(() => _error = '');
+      if (mounted) {
+        setState(() {
+          _error = '';
+          if (player.state.playing) _connecting = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _connecting = false;
+        });
+      }
     }
   }
 
@@ -1322,12 +1504,23 @@ class _PlayerPageState extends State<PlayerPage> {
 
   void _scheduleHide() {
     _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
+    // Windows needs a little more time for mouse-based controls than touch UI.
+    final delay = defaultTargetPlatform == TargetPlatform.windows
+        ? const Duration(seconds: 10)
+        : const Duration(seconds: 3);
+    _hideTimer = Timer(delay, () {
       if (mounted && player.state.playing) setState(() => _controlsVisible = false);
     });
   }
 
   void _toggleControls() {
+    if (defaultTargetPlatform == TargetPlatform.windows) {
+      // On desktop, tapping/clicking the video should reveal or keep controls
+      // visible and restart the ten-second timer instead of hiding instantly.
+      if (!_controlsVisible) setState(() => _controlsVisible = true);
+      _scheduleHide();
+      return;
+    }
     setState(() => _controlsVisible = !_controlsVisible);
     if (_controlsVisible) _scheduleHide(); else _hideTimer?.cancel();
   }
@@ -1344,6 +1537,24 @@ class _PlayerPageState extends State<PlayerPage> {
     }
   }
 
+  Future<void> _restoreDesktopWindow() async {
+    try {
+      await windowManager.setAlwaysOnTop(false);
+      await windowManager.setMinimumSize(const Size(760, 520));
+      if (_previouslyMaximized) {
+        await windowManager.maximize();
+      } else {
+        final previousSize = _previousWindowSize;
+        final previousPosition = _previousWindowPosition;
+        if (previousSize != null) await windowManager.setSize(previousSize);
+        if (previousPosition != null) await windowManager.setPosition(previousPosition);
+      }
+      if (mounted) setState(() => _desktopMiniPlayer = false);
+    } catch (e) {
+      if (mounted) _showSnack('Could not restore the player window: $e');
+    }
+  }
+
   Future<void> _minimize() async {
     if (defaultTargetPlatform == TargetPlatform.android) {
       try {
@@ -1356,15 +1567,37 @@ class _PlayerPageState extends State<PlayerPage> {
         if (mounted) _showSnack('PiP native bridge is not installed in this build.');
       }
     } else if (defaultTargetPlatform == TargetPlatform.windows) {
-      await windowManager.minimize();
+      try {
+        if (_desktopMiniPlayer) {
+          // Restore the same window size/position, including maximized state.
+          await _restoreDesktopWindow();
+        } else {
+          _previouslyMaximized = await windowManager.isMaximized();
+          _previousWindowSize = await windowManager.getSize();
+          _previousWindowPosition = await windowManager.getPosition();
+          // A maximized window may ignore the new mini-player dimensions until restored.
+          if (_previouslyMaximized) await windowManager.unmaximize();
+          await windowManager.setAlwaysOnTop(true);
+          await windowManager.setMinimumSize(const Size(360, 230));
+          await windowManager.setSize(const Size(480, 300));
+          await windowManager.center();
+          if (mounted) {
+            setState(() {
+              _desktopMiniPlayer = true;
+              _controlsVisible = true;
+            });
+            _scheduleHide();
+          }
+        }
+      } catch (e) {
+        if (mounted) _showSnack('Could not toggle the Windows mini-player: $e');
+      }
     } else {
       _showSnack('Mini-player is not supported on this platform.');
     }
   }
 
-  void _showSnack(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  }
+  void _showSnack(String text) => _showFlowSnack(context, text);
 
   Future<void> _pickQuality() async {
     final tracks = player.state.tracks.video.where((t) => t.id != 'auto' && t.id != 'no').toList();
@@ -1472,19 +1705,43 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _showMore() async {
-    final selected = await showModalBottomSheet<String>(context: context, showDragHandle: true, builder: (context) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      const ListTile(title: Text('Player controls'), subtitle: Text('Quick settings for this stream')),
-      ListTile(leading: const Icon(Icons.refresh_rounded), title: const Text('Reconnect stream'), subtitle: const Text('Reload this channel now'), onTap: () => Navigator.pop(context, 'reconnect')),
-      ListTile(leading: const Icon(Icons.speed_rounded), title: const Text('Buffer strategy'), subtitle: Text(widget.state.bufferMode.toUpperCase()), onTap: () => Navigator.pop(context, 'buffer'), ),
-      ListTile(leading: const Icon(Icons.high_quality_rounded), title: const Text('Stream quality'), subtitle: Text(_quality.toUpperCase()), onTap: () => Navigator.pop(context, 'quality')),
-      ListTile(leading: const Icon(Icons.aspect_ratio_rounded), title: const Text('Display downscale'), subtitle: Text(_displayScale == 'none' ? 'Original output' : '${_displayScale}p local output'), onTap: () => Navigator.pop(context, 'scale')),
-      ListTile(leading: const Icon(Icons.closed_caption_rounded), title: const Text('Subtitles'), onTap: () => Navigator.pop(context, 'subs')),
-      ListTile(leading: const Icon(Icons.audiotrack_rounded), title: const Text('Audio track'), onTap: () => Navigator.pop(context, 'audio')),
-      ListTile(leading: const Icon(Icons.aspect_ratio_rounded), title: const Text('Aspect ratio / fit'), subtitle: Text(_videoFit.name), onTap: () => Navigator.pop(context, 'aspect')),
-      SwitchListTile(secondary: const Icon(Icons.lock_clock_outlined), title: const Text('Rotation lock'), value: _rotationLocked, onChanged: (_) => Navigator.pop(context, 'rotation')),
-      SwitchListTile(secondary: const Icon(Icons.bolt_rounded), title: const Text('Data Saver'), value: widget.state.dataSaver, onChanged: (_) => Navigator.pop(context, 'saver')),
-      SwitchListTile(secondary: const Icon(Icons.analytics_outlined), title: const Text('Playback stats'), value: _showStats, onChanged: (_) => Navigator.pop(context, 'stats')),
-    ])));
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(sheetContext).height * .84,
+          ),
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Player controls'),
+                  subtitle: Text('Quick settings for this stream'),
+                ),
+                ListTile(leading: const Icon(Icons.refresh_rounded), title: const Text('Reconnect stream'), subtitle: const Text('Reload this channel now'), onTap: () => Navigator.pop(sheetContext, 'reconnect')),
+                ListTile(leading: const Icon(Icons.speed_rounded), title: const Text('Buffer strategy'), subtitle: Text(widget.state.bufferMode.toUpperCase()), onTap: () => Navigator.pop(sheetContext, 'buffer')),
+                ListTile(leading: const Icon(Icons.high_quality_rounded), title: const Text('Stream quality'), subtitle: Text(_quality.toUpperCase()), onTap: () => Navigator.pop(sheetContext, 'quality')),
+                ListTile(leading: const Icon(Icons.aspect_ratio_rounded), title: const Text('Display downscale'), subtitle: Text(_displayScale == 'none' ? 'Original output' : '${_displayScale}p local output'), onTap: () => Navigator.pop(sheetContext, 'scale')),
+                ListTile(leading: const Icon(Icons.closed_caption_rounded), title: const Text('Subtitles'), onTap: () => Navigator.pop(sheetContext, 'subs')),
+                ListTile(leading: const Icon(Icons.audiotrack_rounded), title: const Text('Audio track'), onTap: () => Navigator.pop(sheetContext, 'audio')),
+                ListTile(leading: const Icon(Icons.aspect_ratio_rounded), title: const Text('Aspect ratio / fit'), subtitle: Text(_videoFit.name), onTap: () => Navigator.pop(sheetContext, 'aspect')),
+                SwitchListTile(secondary: const Icon(Icons.lock_clock_outlined), title: const Text('Rotation lock'), value: _rotationLocked, onChanged: (_) => Navigator.pop(sheetContext, 'rotation')),
+                SwitchListTile(secondary: const Icon(Icons.bolt_rounded), title: const Text('Data Saver'), value: widget.state.dataSaver, onChanged: (_) => Navigator.pop(sheetContext, 'saver')),
+                SwitchListTile(secondary: const Icon(Icons.analytics_outlined), title: const Text('Playback stats'), value: _showStats, onChanged: (_) => Navigator.pop(sheetContext, 'stats')),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
     switch (selected) {
       case 'quality': await _pickQuality(); break;
       case 'scale': await _pickDownscale(); break;
@@ -1507,11 +1764,13 @@ class _PlayerPageState extends State<PlayerPage> {
 
   @override
   void dispose() {
+    if (_desktopMiniPlayer) unawaited(_restoreDesktopWindow());
     _hideTimer?.cancel();
     _bufferTimer?.cancel();
     _stableTimer?.cancel();
     _elapsedTicker?.cancel();
     _bufferingSubscription?.cancel();
+    _playingSubscription?.cancel();
     _errorSubscription?.cancel();
     unawaited(player.dispose());
     unawaited(SystemChrome.setPreferredOrientations(const []));
@@ -1531,19 +1790,62 @@ class _PlayerPageState extends State<PlayerPage> {
             child: Stack(fit: StackFit.expand, children: [
               const ColoredBox(color: Colors.black),
               Center(child: Video(controller: videoController, fit: _videoFit, controls: NoVideoControls, pauseUponEnteringBackgroundMode: false, resumeUponEnteringForegroundMode: false, wakelock: true)),
-              StreamBuilder<bool>(stream: player.stream.buffering, initialData: player.state.buffering, builder: (context, snapshot) => snapshot.data == true ? const Center(child: CircularProgressIndicator(color: Color(0xFF46D7FF))) : const SizedBox.shrink()),
+              StreamBuilder<bool>(
+                stream: player.stream.buffering,
+                initialData: player.state.buffering,
+                builder: (context, snapshot) {
+                  final buffering = snapshot.data == true;
+                  if (!_connecting && !buffering) return const SizedBox.shrink();
+                  final title = _connecting ? 'CONNECTING TO CHANNEL' : 'BUFFERING STREAM';
+                  final subtitle = _connecting ? 'Preparing your stream…' : 'Waiting for a steadier connection…';
+                  return IgnorePointer(
+                    child: Center(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xE8111A32),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: widget.state.accent.withValues(alpha: .38)),
+                          boxShadow: [BoxShadow(color: widget.state.accent.withValues(alpha: .12), blurRadius: 28)],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(width: 23, height: 23, child: CircularProgressIndicator(strokeWidth: 2.4, color: widget.state.accent)),
+                            const SizedBox(width: 13),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: .7)),
+                                const SizedBox(height: 4),
+                                Text(subtitle, style: const TextStyle(color: Color(0xFFB9C7E5), fontSize: 11)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
               if (_controlsVisible) ...[
                 const _GradientOverlay(alignment: Alignment.topCenter),
                 const _GradientOverlay(alignment: Alignment.bottomCenter),
                 SafeArea(child: Column(children: [
                   Padding(padding: const EdgeInsets.fromLTRB(8, 6, 8, 10), child: Row(children: [
                     IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_rounded, color: Colors.white)),
-                    ChannelLogo(channel: widget.channel, size: 38, accent: widget.state.accent),
-                    const SizedBox(width: 10),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.channel.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)), Text('${widget.channel.group}  •  LIVE', style: const TextStyle(color: Color(0xFFC5D2F0), fontSize: 11))])),
-                    IconButton(tooltip: 'Minimize / PiP', onPressed: _minimize, icon: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white)),
-                    IconButton(tooltip: 'Rotation lock', onPressed: _toggleRotationLock, icon: Icon(_rotationLocked ? Icons.screen_lock_rotation_rounded : Icons.screen_rotation_rounded, color: Colors.white)),
-                    IconButton(tooltip: stateFavTooltip(), onPressed: () => widget.state.toggleFavorite(widget.channel), icon: Icon(widget.state.favorites.contains(widget.channel.id) ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: widget.state.favorites.contains(widget.channel.id) ? const Color(0xFFFF5B9C) : Colors.white)),
+                    if (!_desktopMiniPlayer) ...[
+                      ChannelLogo(channel: widget.channel, size: 38, accent: widget.state.accent),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.channel.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)), if (!_desktopMiniPlayer) Text('${widget.channel.group}  •  LIVE', style: const TextStyle(color: Color(0xFFC5D2F0), fontSize: 11))])),
+                    IconButton(tooltip: defaultTargetPlatform == TargetPlatform.windows ? (_desktopMiniPlayer ? 'Restore player window' : 'Enter always-on-top mini-player') : 'Minimize / Picture-in-Picture', onPressed: _minimize, icon: Icon(_desktopMiniPlayer ? Icons.picture_in_picture_rounded : Icons.picture_in_picture_alt_rounded, color: Colors.white)),
+                    if (!_desktopMiniPlayer) ...[
+                      IconButton(tooltip: 'Rotation lock', onPressed: _toggleRotationLock, icon: Icon(_rotationLocked ? Icons.screen_lock_rotation_rounded : Icons.screen_rotation_rounded, color: Colors.white)),
+                      IconButton(tooltip: stateFavTooltip(), onPressed: () => widget.state.toggleFavorite(widget.channel), icon: Icon(widget.state.favorites.contains(widget.channel.id) ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: widget.state.favorites.contains(widget.channel.id) ? const Color(0xFFFF5B9C) : Colors.white)),
+                    ],
                     IconButton(tooltip: 'More player settings', onPressed: _showMore, icon: const Icon(Icons.tune_rounded, color: Colors.white)),
                   ])),
                   const Spacer(),
@@ -1564,7 +1866,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     const SizedBox(height: 9),
                     Row(children: [
                       Expanded(child: Text(_formatDuration(_elapsed), style: const TextStyle(color: Colors.white70, fontSize: 10))),
-                      Text(_pip ? 'PiP active' : widget.state.bufferMode.toUpperCase(), style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                      Text((_pip || _desktopMiniPlayer) ? 'MINI-PLAYER ACTIVE' : widget.state.bufferMode.toUpperCase(), style: const TextStyle(color: Colors.white70, fontSize: 10)),
                       const SizedBox(width: 9),
                       Text(_rotationLocked ? 'ROTATION LOCKED' : 'LIVE', style: const TextStyle(color: Colors.white70, fontSize: 10)),
                     ]),
